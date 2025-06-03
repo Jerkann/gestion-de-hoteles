@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Reserva de Hoteles</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+
+<body>
+
+  <h1>Reserva de Hoteles</h1>
+
+  <div class="form-section">
+    <label>Entrada: <input type="datetime-local" id="entrada"></label>
+    <label>Salida: <input type="datetime-local" id="salida"></label>
+    <button onclick="actualizarVista()">Actualizar vista</button>
+  </div>
+
+  <div id="hotels"></div>
+
+  <div class="actions">
+    <button onclick="confirmarReserva()">Confirmar reserva seleccionada</button>
+    <button onclick="marcarComoOcupadas()">Marcar seleccionadas como ocupadas</button>
+    <button onclick="resetSeleccion()">Limpiar selección</button>
+  </div>
+
+  <script>
+    let hotels = [
+      { name: "Hotel 1", rooms: 10 },
+      { name: "Hotel 2", rooms: 10 },
+      { name: "Hotel 3", rooms: 10 },
+    ];
+
+    let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
+    let seleccionadas = [];
+
+    function isOverlapping(start1, end1, start2, end2) {
+      return start1 < end2 && start2 < end1;
+    }
+
+    function getDate(id) {
+      const val = document.getElementById(id).value;
+      return val ? new Date(val) : null;
+    }
+
+    function renderHotels() {
+      const entrada = getDate("entrada");
+      const salida = getDate("salida");
+      const container = document.getElementById("hotels");
+      container.innerHTML = "";
+
+      hotels.forEach((hotel, index) => {
+        const hotelDiv = document.createElement("div");
+        hotelDiv.className = "hotel";
+        hotelDiv.innerHTML = `
+          <h2>${hotel.name}</h2>
+          <div class="controls">
+            <button onclick="agregarHabitacion(${index})">➕ Habitación</button>
+            <button onclick="quitarHabitacion(${index})">➖ Habitación</button>
+          </div>
+        `;
+
+        for (let i = 1; i <= hotel.rooms; i++) {
+          const roomKey = `${index}-${i}`;
+          const reservas = reservations[roomKey] || [];
+
+          const overlap = entrada && salida && reservas.some(r =>
+            isOverlapping(entrada, salida, new Date(r.start), new Date(r.end))
+          );
+
+          const estaSeleccionada = seleccionadas.includes(roomKey);
+
+          const btn = document.createElement("button");
+          btn.textContent = `Hab ${i}`;
+          btn.className = "room";
+
+          if (overlap) {
+            btn.classList.add("occupied");
+            btn.disabled = true;
+          } else if (estaSeleccionada) {
+            btn.classList.add("selected");
+          } else {
+            btn.classList.add("available");
+          }
+
+          btn.onclick = () => toggleSeleccion(roomKey);
+          hotelDiv.appendChild(btn);
+        }
+
+        container.appendChild(hotelDiv);
+      });
+    }
+
+    function toggleSeleccion(roomKey) {
+      if (seleccionadas.includes(roomKey)) {
+        seleccionadas = seleccionadas.filter(k => k !== roomKey);
+      } else {
+        seleccionadas.push(roomKey);
+      }
+      renderHotels();
+    }
+
+    function confirmarReserva() {
+      const entrada = getDate("entrada");
+      const salida = getDate("salida");
+
+      if (!entrada || !salida || entrada >= salida) {
+        alert("Selecciona una hora de entrada y salida válida.");
+        return;
+      }
+
+      if (seleccionadas.length === 0) {
+        alert("Selecciona al menos una habitación.");
+        return;
+      }
+
+      seleccionadas.forEach(roomKey => {
+        if (!reservations[roomKey]) reservations[roomKey] = [];
+        reservations[roomKey].push({ start: entrada, end: salida });
+      });
+
+      localStorage.setItem("reservations", JSON.stringify(reservations));
+      alert("¡Reserva realizada!");
+      seleccionadas = [];
+      renderHotels();
+    }
+
+    function marcarComoOcupadas() {
+      const now = new Date();
+      const defaultEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2h
+
+      seleccionadas.forEach(roomKey => {
+        if (!reservations[roomKey]) reservations[roomKey] = [];
+        reservations[roomKey].push({ start: now, end: defaultEnd });
+      });
+
+      localStorage.setItem("reservations", JSON.stringify(reservations));
+      alert("Habitaciones marcadas como ocupadas.");
+      seleccionadas = [];
+      renderHotels();
+    }
+
+    function resetSeleccion() {
+      seleccionadas = [];
+      renderHotels();
+    }
+
+    function actualizarVista() {
+      renderHotels();
+    }
+
+    function agregarHabitacion(hotelIndex) {
+      hotels[hotelIndex].rooms += 1;
+      renderHotels();
+    }
+
+    function quitarHabitacion(hotelIndex) {
+      const total = hotels[hotelIndex].rooms;
+      if (total <= 0) {
+        alert("No hay habitaciones para quitar.");
+        return;
+      }
+
+      const lastRoomKey = `${hotelIndex}-${total}`;
+      const reservas = reservations[lastRoomKey] || [];
+
+      if (reservas.length > 0) {
+        alert("No se puede quitar esta habitación, tiene reservas.");
+        return;
+      }
+
+      delete reservations[lastRoomKey];
+      hotels[hotelIndex].rooms -= 1;
+      renderHotels();
+    }
+
+    renderHotels();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,90 @@
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #f5f7fa, #c3cfe2);
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.hotel {
+  background: white;
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 700px;
+}
+
+.room {
+  display: inline-block;
+  margin: 5px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.available {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.occupied {
+  background-color: #c0392b;
+  color: white;
+  cursor: not-allowed;
+  border: 2px solid #922b21;
+  box-shadow: 0 0 5px #922b21;
+}
+
+.selected {
+  background-color: #f1c40f;
+  color: #000;
+}
+
+.room:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.room:disabled {
+  opacity: 0.7;
+}
+
+.form-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+input,
+button {
+  margin: 5px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.actions {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.controls {
+  margin-bottom: 10px;
+}
+
+.controls button {
+  margin-right: 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.controls button:hover {
+  background-color: #2980b9;
+}
